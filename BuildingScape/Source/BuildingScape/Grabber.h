@@ -8,6 +8,12 @@
 #include "Components/InputComponent.h"
 #include "Grabber.generated.h"
 
+struct FPlayerViewPoint
+{
+	FVector VPLocation;
+	FRotator VPRotation;
+};
+
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class BUILDINGSCAPE_API UGrabber : public UActorComponent
@@ -38,4 +44,6 @@ private:
 	void SetupInputComponent();
 
 	FHitResult GetFirstPhysicsBodyInReach() const;
+	FVector GetGrabbingPoint() const;
+	FPlayerViewPoint GetViewPoint() const;
 };
