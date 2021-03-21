@@ -2,6 +2,7 @@
 
 
 #include "OpenDoor.h"
+#include "Components/AudioComponent.h"
 #include "Engine/World.h"
 #include "GameFramework/Actor.h"
 #include "Components/PrimitiveComponent.h"
@@ -32,6 +33,18 @@ void UOpenDoor::BeginPlay()
 					"%s has the OpenDoor component but no PressurePlate assigned!"),
 			   *GetOwner()->GetName())
 	}
+
+	FindAudioComponent();
+}
+
+void UOpenDoor::FindAudioComponent()
+{
+	AudioComponent = GetOwner()->FindComponentByClass<UAudioComponent>();
+
+	if (!AudioComponent)
+	{
+		UE_LOG(LogTemp, Error, TEXT("%s Missing audio component"), *GetOwner()->GetName());
+	}
 }
 
 // Called every frame
@@ -56,6 +69,7 @@ void UOpenDoor::OpenDoor(const float& DeltaTime)
 	FRotator DoorRotation = GetOwner()->GetActorRotation();
 	DoorRotation.Yaw = CurrentYaw;
 	GetOwner()->SetActorRotation(DoorRotation);
+	PlaySoundIfClosed();
 }
 
 void UOpenDoor::CloseDoor(const float& DeltaTime)
@@ -64,6 +78,27 @@ void UOpenDoor::CloseDoor(const float& DeltaTime)
 	FRotator DoorRotation = GetOwner()->GetActorRotation();
 	DoorRotation.Yaw = CurrentYaw;
 	GetOwner()->SetActorRotation(DoorRotation);
+	PlaySoundIfClosed();
+}
+
+bool UOpenDoor::IsDoorClosed()
+{
+	return (FMath::Abs(CurrentYaw - InitialYaw) < ClosedAngleMargin);
+}
+
+void UOpenDoor::PlaySoundIfClosed()
+{
+	if (!AudioComponent) { return; }
+	if (DoorClosed && !IsDoorClosed())
+	{
+		AudioComponent->Play();
+		DoorClosed = false;
+	}
+	else if (!DoorClosed && IsDoorClosed())
+	{
+		AudioComponent->Play();
+		DoorClosed = true;
+	}
 }
 
 float UOpenDoor::TotalMassOfActors() const
