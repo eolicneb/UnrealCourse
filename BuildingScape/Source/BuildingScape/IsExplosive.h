@@ -33,6 +33,7 @@ public:
 private:
 	bool IsHeatting = false;
 	float BurnTimeStart = 0.f;
+	
 
 	UPROPERTY(EditAnywhere);
 	float ExplosionDelay = 0.f;

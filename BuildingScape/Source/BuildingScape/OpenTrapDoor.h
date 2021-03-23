@@ -26,11 +26,14 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	void SlideToTarget(float TargetPos, float DeltaTime);
 	bool DidBonfireExplode() const;
+	void PlayOpeningSound() const;
+	void StopOpeningSound() const;
 
 private:
 	float ClosedPos = 0.f;
 	float CurrentPos = 0.f;
 	float OpenPos = 100.f;
+	bool Open = false;
 
 	UPROPERTY(EditAnywhere);
 	ATriggerVolume* ActivationBonfire = nullptr;

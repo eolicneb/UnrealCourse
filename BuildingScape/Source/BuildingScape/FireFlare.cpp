@@ -3,6 +3,7 @@
 
 #include "FireFlare.h"
 #include "Math/UnrealMathUtility.h"
+#include "Components/AudioComponent.h"
 
 // Sets default values for this component's properties
 UFireFlare::UFireFlare()
@@ -29,5 +30,26 @@ void UFireFlare::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompo
 
 	FVector CurrentLocation = InitialPos + FMath::VRand() * BurnAmplitud;
 	GetOwner()->SetActorLocation(CurrentLocation);
+	UAudioComponent* FireComponent = GetOwner()->FindComponentByClass<UAudioComponent>();
+	if (FireComponent)
+	{
+		if (!FireComponent->IsPlaying())
+		{
+			if (ScheduledToPlay)
+			{
+				if(GetWorld()->GetTimeSeconds() > RandomStartTime)
+				{
+					FireComponent->Play();
+					ScheduledToPlay = false;
+				}
+			}
+			else
+			{
+				RandomStartTime = GetWorld()->GetTimeSeconds() + FMath::FRandRange(0.f, RandomStartMargin);
+				ScheduledToPlay = true;
+			}
+
+		}
+	}
 }
 

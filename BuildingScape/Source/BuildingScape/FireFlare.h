@@ -23,9 +23,15 @@ protected:
 public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	void RandomStart();
 
 private:
 	FVector InitialPos = {0.f, 0.f, 0.f};
+	float RandomStartTime;
+	bool ScheduledToPlay = false;
+
+	UPROPERTY(EditAnywhere);
+	float RandomStartMargin = 1.f;
 
 	UPROPERTY(EditAnywhere);
 	float BurnAmplitud = 10.f;

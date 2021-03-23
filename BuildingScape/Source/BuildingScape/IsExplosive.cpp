@@ -3,6 +3,7 @@
 
 #include "IsExplosive.h"
 #include "engine/World.h"
+#include "Components/AudioComponent.h"
 
 #define OUT
 
@@ -54,6 +55,7 @@ void UIsExplosive::GetBurnt()
 	{
 		UE_LOG(LogTemp, Error, TEXT("%s went BBBOOOOMMM!!!!!"), *GetOwner()->GetName());
 		Exploded = true;
+		GetOwner()->FindComponentByClass<UAudioComponent>()->Play();
 	}
 }
 

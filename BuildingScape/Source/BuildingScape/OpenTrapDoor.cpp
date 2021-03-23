@@ -5,6 +5,7 @@
 #include "GameFramework/Actor.h"
 #include "Components/PrimitiveComponent.h"
 #include "IsExplosive.h"
+#include "Components/AudioComponent.h"
 
 #define OUT
 
@@ -44,6 +45,8 @@ void UOpenTrapDoor::TickComponent(float DeltaTime, ELevelTick TickType, FActorCo
 	if (DidBonfireExplode())
 	{
 		SlideToTarget(OpenPos, DeltaTime);
+		PlayOpeningSound();
+		Open = true;
 	}
 }
 
@@ -54,6 +57,10 @@ void UOpenTrapDoor::SlideToTarget(float TargetPos, float DeltaTime)
 	float UpdatePos = FMath::Lerp(CurrentPos, OpenPos, DeltaTime * Slidespeed);
 	CurrentLocation[0] = UpdatePos;
 	GetOwner()->SetActorLocation(CurrentLocation);
+	if (FMath::Abs(OpenPos-CurrentPos) < 0.1f * FMath::Abs(SlideAmplitude))
+	{
+		StopOpeningSound();
+	}
 }
 
 bool UOpenTrapDoor::DidBonfireExplode() const
@@ -76,4 +83,22 @@ bool UOpenTrapDoor::DidBonfireExplode() const
 	}
 
 	return false;
+}
+
+void UOpenTrapDoor::PlayOpeningSound() const
+{
+	UAudioComponent* StoneSoundComponent = GetOwner()->FindComponentByClass<UAudioComponent>();
+	if (StoneSoundComponent && !Open)
+	{
+		StoneSoundComponent->Play();
+	}
+}
+
+void UOpenTrapDoor::StopOpeningSound() const
+{
+	UAudioComponent* StoneSoundComponent = GetOwner()->FindComponentByClass<UAudioComponent>();
+	if (StoneSoundComponent)
+	{
+		StoneSoundComponent->Stop();
+	}
 }

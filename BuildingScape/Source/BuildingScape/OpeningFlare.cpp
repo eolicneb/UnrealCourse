@@ -2,6 +2,9 @@
 
 
 #include "OpeningFlare.h"
+#include "Components/AudioComponent.h"
+
+#define BRIGHTMULT 100000.f
 
 // Sets default values for this component's properties
 UOpeningFlare::UOpeningFlare()
@@ -27,11 +30,24 @@ void UOpeningFlare::BeginPlay()
 	}
 	else
 	{
-		InitialBright = FlareComponent->ComputeLightBrightness();
+		// InitialBright = FlareComponent->ComputeLightBrightness();
+		InitialPos = GetOwner()->GetActorLocation();
+		CurrentPos = InitialPos;
+		InitialBright = InitialPos.Z;
 		UE_LOG(LogTemp, Warning, TEXT("Initial brightness of %s is %f"),
 			*GetOwner()->GetName(), InitialBright);
 	}
-	Explode();
+
+	if (!TriggerExplosive)
+	{
+		UE_LOG(LogTemp, Error, TEXT("%s has OpeningFlare component but no TriggerExplosive!"),
+			*GetOwner()->GetName());
+	}
+	else
+	{
+		Explosive = TriggerExplosive->FindComponentByClass<UIsExplosive>();
+	}
+	// Explode();
 
 }
 
@@ -41,10 +57,14 @@ void UOpeningFlare::TickComponent(float DeltaTime, ELevelTick TickType, FActorCo
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
+	if (!Burning && Explosive && Explosive->Exploded) { Explode(); }
+
 	if (Burning)
 	{
 		UpdateBrightness(DeltaTime);
 	}
+	GetOwner()->SetActorLocation(CurrentPos
+		 + FMath::VRand() * BurnAmplitud * (1 + CurrentBright/BurstBright));
 }
 
 void UOpeningFlare::Explode()
@@ -57,12 +77,16 @@ void UOpeningFlare::Explode()
 
 void UOpeningFlare::UpdateBrightness(float DeltaTime)
 {
-	if (!Burning || GetWorld()->GetTimeSeconds() - IgnitionTime < BurstDelay) { return; }
+	if (!Burning) { return; }
 	if (!Extinguishing)
 	{
-		UE_LOG(LogTemp, Error, TEXT("BBOOOOOOMMMMMMMMM!!!!!!"));
+		UE_LOG(LogTemp, Error, TEXT("BBOOOOOOMMMMMMMMM!!!!!! At bright %f"),
+			BurstBright);
 		CurrentBright = BurstBright;
-		FlareComponent->SetLightBrightness(CurrentBright);
+		FlareComponent->SetLightBrightness(CurrentBright*CurrentBright*BRIGHTMULT);
+		CurrentPos = InitialPos;
+		CurrentPos.Z = CurrentBright;
+		GetOwner()->SetActorLocation(CurrentPos);
 		Extinguishing = true;
 	}
 	else
@@ -73,16 +97,31 @@ void UOpeningFlare::UpdateBrightness(float DeltaTime)
 		if ((CurrentBright - InitialBright) < .1f * (BurstBright - InitialBright))
 		{
 			// Reset
-			CurrentBright = InitialBright;
-			FlareComponent->SetLightBrightness(CurrentBright);
-			Burning = false;
-			Extinguishing = false;
+			// CurrentBright = InitialBright;
+			FlareComponent->SetLightBrightness(CurrentBright*CurrentBright*BRIGHTMULT);
+			// CurrentPos = GetOwner()->GetActorLocation();
+			// CurrentPos.Z = CurrentBright;
+			// GetOwner()->SetActorLocation(CurrentPos);
 		}
 		else
 		{
-			FlareComponent->SetLightBrightness(CurrentBright);
+			FlareComponent->SetLightBrightness(CurrentBright*CurrentBright*BRIGHTMULT);
+			CurrentPos = InitialPos;
+			CurrentPos.Z = CurrentBright;
+			GetOwner()->SetActorLocation(CurrentPos);
 		}
-		float ActualBrightness = FlareComponent->ComputeLightBrightness();
-		UE_LOG(LogTemp, Warning, TEXT("Burning with brightness %f"), ActualBrightness);
+
+		UAudioComponent* FireComponent = GetOwner()->FindComponentByClass<UAudioComponent>();
+		if (FireComponent)
+		{
+			if(!FireComponent->IsPlaying()) { FireComponent->Play(); }
+
+			FireComponent->VolumeMultiplier = CurrentBright/BurstBright;
+			UE_LOG(LogTemp, Warning, TEXT("Current fire volume %f"),
+			FireComponent->VolumeMultiplier);
+		}
+
+		// float ActualBrightness = FlareComponent->ComputeLightBrightness();
 	}
+
 }

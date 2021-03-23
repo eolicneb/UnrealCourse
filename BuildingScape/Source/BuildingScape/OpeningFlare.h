@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "Components/PointLightComponent.h"
+#include "IsExplosive.h"
 #include "OpeningFlare.generated.h"
 
 
@@ -28,6 +29,8 @@ public:
 	void UpdateBrightness(float DeltaTime);
 
 private:
+	FVector InitialPos = {0.f, 0.f, 0.f};
+	FVector CurrentPos = {0.f, 0.f, 0.f};
 	float InitialBright = 0.f;
 	float CurrentBright = 0.f;
 	float IgnitionTime = 0.f;
@@ -35,14 +38,17 @@ private:
 	bool Extinguishing = false;
 
 	ULightComponent* FlareComponent = nullptr;
+	UIsExplosive* Explosive = nullptr;
 
 	UPROPERTY(EditAnywhere);
 	float BurstBright = 10.f;
 
 	UPROPERTY(EditAnywhere);
-	float BurstDelay = 2.f;
-
-	UPROPERTY(EditAnywhere);
 	float BurnDownSpeed = .1f;
 
+	UPROPERTY(EditAnywhere);
+	float BurnAmplitud = 10.f;
+
+	UPROPERTY(EditAnywhere);
+	AActor* TriggerExplosive = nullptr;
 };
